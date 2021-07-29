@@ -7,21 +7,30 @@ import (
 	"path"
 )
 
-var DefaultLog4j = New(DEBUG)
-
+var DefaultLog4j = instance()
+var _instance *Log4j = nil
 type Log4j struct {
 	level 	 Level 		// 日志等级
 	fileName string 	// 日志文件名称
+	isFileLine bool
 }
 
 func New(level Level) *Log4j{
-	return &Log4j{level: level}
+	return &Log4j{level: level, isFileLine: true}
+}
+
+
+func instance() *Log4j{
+	if _instance == nil {
+		return New(ERROR)
+	}
+	return _instance
 }
 
 
 // @param format string 格式化字符
 // @param args  ...interface{} 待格式化字符串
-func (l *Log4j) output(format string, args ...interface{}) {
+func (l *Log4j) output(level Level,format string, args ...interface{}) {
 	var content string
 	if len(args) != 0 {
 		content = fmt.Sprintf(format, args...)
@@ -33,12 +42,14 @@ func (l *Log4j) output(format string, args ...interface{}) {
 	buff.WriteString("\t")
 	buff.WriteString(fmt.Sprintf("%d", GetGoroutines()))
 	buff.WriteString("\t")
-	buff.WriteString(l.level.String())
-	buff.WriteString("\t")
-	var file, line = GetCalle()
-	buff.WriteString(path.Base(file))
-	buff.WriteString(":")
-	buff.WriteString(fmt.Sprintf("%d", line))
+	buff.WriteString(level.String())
+	if l.isFileLine {
+		buff.WriteString("\t")
+		var file, line = GetCalle()
+		buff.WriteString(path.Base(file))
+		buff.WriteString(":")
+		buff.WriteString(fmt.Sprintf("%d", line))
+	}
 	buff.WriteString("\t")
 	buff.WriteString(content)
 	buff.WriteString("\n")
@@ -48,31 +59,31 @@ func (l *Log4j) output(format string, args ...interface{}) {
 
 func (l *Log4j) Debug(format string, args ...interface{}) {
 	if l.isLevel(DEBUG){
-		l.output(format, args...)
+		l.output(DEBUG, format, args...)
 	}
 }
 
 func (l *Log4j) Info(format string, args ...interface{}) {
 	if l.isLevel(INFO){
-		l.output(format, args...)
+		l.output(INFO, format, args...)
 	}
 }
 
 func (l *Log4j) Warin(format string, args ...interface{}) {
 	if l.isLevel(WARN){
-		l.output(format, args...)
+		l.output(WARN, format, args...)
 	}
 }
 
 func (l *Log4j) Error(format string, args ...interface{}) {
 	if l.isLevel(ERROR){
-		l.output(format, args...)
+		l.output(ERROR, format, args...)
 	}
 }
 
 func (l *Log4j) Fatal(format string, args ...interface{}) {
 	if l.isLevel(FATAL){
-		l.output(format, args...)
+		l.output(FATAL, format, args...)
 	}
 	os.Exit(2)
 }

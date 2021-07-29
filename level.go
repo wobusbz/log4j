@@ -23,7 +23,7 @@ func (l Level) String() string {
 	case DEBUG:
 		return "[ DEBUG ]"
 	case INFO:
-		return "[ INFO ]"
+		return "[ INFO  ]"
 	case WARN:
 		return "[ WARIN ]"
 	case ERROR:
